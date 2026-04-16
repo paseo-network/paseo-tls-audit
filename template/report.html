@@ -292,11 +292,11 @@
       </ol>
 
       <h3 style="margin-top: 1rem;">Reproduce it yourself</h3>
-      <p>The audit tooling is open source. You need <a href="https://bun.sh" style="color:var(--accent)">Bun</a> installed, then:</p>
+      <p>The audit tooling is open source. You need Node.js &ge; 20, then:</p>
       <pre>git clone https://github.com/paseo-network/paseo-tls-audit.git
 cd paseo-tls-audit
-bun install
-bun run audit</pre>
+npm install
+npm run audit</pre>
       <p style="margin-top:0.5rem">This runs three steps: <strong>discover</strong> (smoldot DHT crawl) &rarr;
         <strong>check-tls</strong> (certificate verification) &rarr; <strong>report</strong> (HTML generation).
         The final report is written to <code>output/report.html</code>.</p>

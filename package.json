@@ -4,13 +4,14 @@
   "description": "Discover Paseo Asset Hub peers via DHT and audit TLS certificates on their wss endpoints",
   "type": "module",
   "scripts": {
-    "discover": "mkdir -p output && bun src/discover.ts > output/peers.json",
-    "check-tls": "bun src/check-tls.ts > output/report_data.json",
-    "report": "bun src/build-report.ts > output/report.html",
-    "audit": "bun run discover && bun run check-tls && bun run report"
+    "discover": "mkdir -p output && tsx src/discover.ts > output/peers.json",
+    "check-tls": "tsx src/check-tls.ts > output/report_data.json",
+    "report": "tsx src/build-report.ts > output/report.html",
+    "audit": "npm run discover && npm run check-tls && npm run report"
   },
   "dependencies": {
-    "smoldot": "^3.0.0"
+    "smoldot": "^3.0.0",
+    "tsx": "^4.19.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

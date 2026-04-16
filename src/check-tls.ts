@@ -49,8 +49,16 @@ interface Peer {
 
 // ----- Helpers -----
 
-function isPrivateIp(ip: string): boolean {
+function isNonRoutable(ip: string): boolean {
+  // IPv6 loopback, unspecified, link-local, ULA
+  if (ip === "::1" || ip === "::" || ip.startsWith("fe80:") || ip.startsWith("fd") || ip.startsWith("fc")) return true;
+  // IPv4 private (RFC 1918), loopback, link-local, CGNAT (RFC 6598)
   if (ip.startsWith("10.") || ip.startsWith("127.") || ip.startsWith("192.168.") || ip.startsWith("0.")) return true;
+  if (ip.startsWith("169.254.")) return true;
+  if (ip.startsWith("100.")) {
+    const second = parseInt(ip.split(".")[1], 10);
+    if (second >= 64 && second <= 127) return true; // 100.64.0.0/10
+  }
   if (ip.startsWith("172.")) {
     const second = parseInt(ip.split(".")[1], 10);
     if (second >= 16 && second <= 31) return true;
@@ -188,7 +196,7 @@ for (const [pid, addrs] of Object.entries(dhtPeers)) {
   for (const ma of addrs) {
     const parsed = parseMultiaddr(ma);
     if (!parsed.host || !parsed.port) continue;
-    if (["ip4", "ip6"].includes(parsed.addrType) && isPrivateIp(parsed.host!)) continue;
+    if (["ip4", "ip6"].includes(parsed.addrType) && isNonRoutable(parsed.host!)) continue;
 
     peer.addrs.push({
       multiaddr: ma,

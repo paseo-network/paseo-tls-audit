@@ -25,8 +25,7 @@ build-report.ts -->  output/report.html
 
 ## Key decisions
 
-- **Bun runtime** — the project uses Bun for speed and native TypeScript execution. All scripts run directly with `bun src/foo.ts`.
-- **No external TLS tools** — we use Node's `tls.connect()` (available in Bun) rather than shelling out to `openssl`. This keeps it cross-platform and avoids subprocess overhead.
+- **No external TLS tools** — we use Node's `tls.connect()` rather than shelling out to `openssl`. This keeps it cross-platform and avoids subprocess overhead.
 - **Chain specs are vendored** in `chain-specs/`. They should be updated when the chain specs change upstream in `paseo-network/paseo-chain-specs`.
 - **The HTML report is fully self-contained** — no external JS/CSS dependencies beyond Google Fonts. Data is embedded as a JSON literal so the page works as a static file anywhere.
 - **Discovery uses smoldot's debug logs** to capture peer multiaddrs. This is a pragmatic approach; smoldot does not expose discovered peers via its JSON-RPC API.
@@ -36,7 +35,7 @@ build-report.ts -->  output/report.html
 - Keep the pipeline simple: three scripts, stdin/stdout between them.
 - Do not add web frameworks or build tooling. The report is a single HTML file.
 - The template should remain human-editable. Do not generate it programmatically beyond the placeholder substitution.
-- Test changes by running `bun run audit` and opening `output/report.html` in a browser.
+- Test changes by running `npm run audit` and opening `output/report.html` in a browser.
 - The `output/` directory is gitignored. Never commit generated artifacts.
 
 ## Extending
