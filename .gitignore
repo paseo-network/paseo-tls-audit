@@ -1,0 +1,10 @@
+node_modules/
+bun.lock
+dist/
+*.tgz
+
+# Outputs
+output/
+peers.json
+tls_results.txt
+report_data.json

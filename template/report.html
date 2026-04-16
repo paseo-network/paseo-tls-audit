@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paseo Asset Hub — WSS TLS Audit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09090b;
+      --surface: #18181b;
+      --surface-2: #27272a;
+      --border: #3f3f46;
+      --text: #fafafa;
+      --text-muted: #a1a1aa;
+      --text-dim: #71717a;
+      --accent: #4f46e5;
+      --green: #34d399;
+      --green-dim: rgba(52,211,153,0.12);
+      --yellow: #fbbf24;
+      --yellow-dim: rgba(251,191,36,0.12);
+      --red: #f87171;
+      --red-dim: rgba(248,113,113,0.12);
+      --blue: #60a5fa;
+      --blue-dim: rgba(96,165,250,0.12);
+      --gray: #71717a;
+      --gray-dim: rgba(113,113,122,0.12);
+      --radius: 0.625rem;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    .container { max-width: 80rem; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* Header */
+    header { padding: 3rem 0 2rem; }
+    .header-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .logo svg { width: 36px; height: 36px; }
+    h1 { font-size: 1.75rem; font-weight: 700; }
+    .subtitle { color: var(--text-muted); font-size: 0.95rem; max-width: 48rem; }
+    .meta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+    .meta-tag {
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 0.25rem 0.65rem; border-radius: 6px;
+      font-size: 0.8rem; color: var(--text-muted);
+    }
+
+    /* Stats */
+    .stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.75rem; margin: 2rem 0;
+    }
+    .stat {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem;
+    }
+    .stat .n { font-size: 1.75rem; font-weight: 700; font-family: "Geist Mono", monospace; }
+    .stat .l { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.1rem; }
+    .c-green { color: var(--green); }
+    .c-yellow { color: var(--yellow); }
+    .c-red { color: var(--red); }
+    .c-blue { color: var(--blue); }
+    .c-gray { color: var(--gray); }
+
+    /* Sections */
+    section { margin-bottom: 2.5rem; }
+    h2 {
+      font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    h3 { font-size: 0.95rem; font-weight: 600; margin: 1.5rem 0 0.75rem; }
+
+    /* Badges */
+    .badge {
+      display: inline-flex; align-items: center;
+      font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; padding: 0.2rem 0.5rem; border-radius: 4px;
+    }
+    .b-green  { background: var(--green-dim); color: var(--green); }
+    .b-yellow { background: var(--yellow-dim); color: var(--yellow); }
+    .b-red    { background: var(--red-dim); color: var(--red); }
+    .b-blue   { background: var(--blue-dim); color: var(--blue); }
+    .b-gray   { background: var(--gray-dim); color: var(--gray); }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+      align-items: center;
+    }
+    .toolbar input {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); padding: 0.45rem 0.75rem; border-radius: var(--radius);
+      font-family: inherit; font-size: 0.85rem; min-width: 200px; flex: 1; max-width: 320px;
+    }
+    .toolbar input::placeholder { color: var(--text-dim); }
+    .filter-btn {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-muted); padding: 0.4rem 0.7rem; border-radius: var(--radius);
+      font-family: inherit; font-size: 0.8rem; cursor: pointer; transition: all 0.15s;
+    }
+    .filter-btn:hover { background: var(--surface-2); color: var(--text); }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .peer-count { font-size: 0.8rem; color: var(--text-dim); margin-left: auto; }
+
+    /* Peer cards */
+    .peer {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 0.5rem;
+      overflow: hidden;
+    }
+    .peer-header {
+      padding: 0.75rem 1rem; cursor: pointer; display: flex;
+      align-items: center; gap: 0.75rem; flex-wrap: wrap;
+      transition: background 0.15s;
+    }
+    .peer-header:hover { background: var(--surface-2); }
+    .peer-id {
+      font-family: "Geist Mono", monospace; font-size: 0.78rem;
+      color: var(--text-muted); flex: 1; min-width: 200px;
+    }
+    .peer-tags { display: flex; gap: 0.35rem; flex-wrap: wrap; align-items: center; }
+    .chevron {
+      color: var(--text-dim); transition: transform 0.2s; font-size: 0.8rem;
+    }
+    .peer.open .chevron { transform: rotate(90deg); }
+    .peer-body {
+      display: none; padding: 0 1rem 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .peer.open .peer-body { display: block; padding-top: 0.75rem; }
+
+    /* Multiaddr rows */
+    .addr {
+      font-family: "Geist Mono", monospace; font-size: 0.75rem;
+      padding: 0.45rem 0.65rem; margin-bottom: 0.35rem;
+      border-radius: 6px; word-break: break-all; line-height: 1.5;
+      display: flex; align-items: flex-start; gap: 0.5rem;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+    }
+    .addr .ma { flex: 1; }
+    .addr .tags { display: flex; gap: 0.25rem; flex-shrink: 0; flex-wrap: wrap; align-items: center; }
+    .tag {
+      font-family: "Geist", sans-serif;
+      font-size: 0.6rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.04em; padding: 0.12rem 0.35rem; border-radius: 3px;
+      white-space: nowrap;
+    }
+    .t-wss { background: var(--green-dim); color: var(--green); }
+    .t-ws  { background: var(--yellow-dim); color: var(--yellow); }
+    .t-tcp { background: var(--gray-dim); color: var(--gray); }
+    .t-cs  { background: rgba(79,70,229,0.15); color: #818cf8; }
+    .t-dht { background: var(--blue-dim); color: var(--blue); }
+    .tls-info {
+      font-family: "Geist", sans-serif;
+      font-size: 0.72rem; color: var(--text-dim); margin-top: 0.15rem;
+    }
+    .tls-info.valid { color: var(--green); }
+    .tls-info.expiring { color: var(--yellow); }
+    .tls-info.expired { color: var(--red); }
+    .tls-info.unreachable { color: var(--gray); }
+
+    /* Live test */
+    .test-btn {
+      font-family: "Geist", sans-serif;
+      font-size: 0.65rem; font-weight: 600;
+      padding: 0.15rem 0.4rem; border-radius: 3px;
+      border: 1px solid var(--border); background: var(--surface-2);
+      color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .test-btn:hover { border-color: var(--accent); color: var(--text); }
+    .test-btn.testing { border-color: var(--blue); color: var(--blue); }
+    .test-btn.pass { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+    .test-btn.fail { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+    /* Methodology */
+    .method {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      font-size: 0.875rem; color: var(--text-muted);
+    }
+    .method h3 { color: var(--text); margin-top: 0; margin-bottom: 0.5rem; }
+    .method ol { padding-left: 1.25rem; }
+    .method li { margin-bottom: 0.35rem; }
+    .method code {
+      font-family: "Geist Mono", monospace; font-size: 0.8rem;
+      background: rgba(255,255,255,0.06); padding: 0.1rem 0.35rem; border-radius: 3px;
+    }
+    .method pre {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 6px; padding: 0.75rem 1rem; margin: 0.75rem 0;
+      overflow-x: auto; font-family: "Geist Mono", monospace; font-size: 0.78rem;
+      line-height: 1.6; color: var(--text);
+    }
+    .method a { color: var(--accent); text-decoration: none; }
+    .method a:hover { text-decoration: underline; }
+
+    /* Test all banner */
+    .test-all-bar {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .test-all-bar p { font-size: 0.85rem; color: var(--text-muted); flex: 1; }
+    .test-all-btn {
+      font-family: "Geist", sans-serif;
+      font-size: 0.85rem; font-weight: 500;
+      padding: 0.45rem 1rem; border-radius: 9999px;
+      border: none; background: var(--accent); color: #fff;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .test-all-btn:hover { opacity: 0.9; }
+    .test-all-btn:disabled { opacity: 0.5; cursor: default; }
+    #test-progress { font-family: "Geist Mono", monospace; font-size: 0.8rem; color: var(--text-dim); }
+
+    footer {
+      margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+      font-size: 0.8rem; color: var(--text-dim);
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+    }
+
+    @media (max-width: 640px) {
+      .container { padding: 1rem 0.75rem; }
+      h1 { font-size: 1.3rem; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .peer-id { font-size: 0.7rem; }
+      .addr { font-size: 0.65rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <div class="logo">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <mask id="m0" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="4" y="4" width="28" height="28"><path d="M32 4H4V32H32V4Z" fill="white"/></mask>
+          <g mask="url(#m0)">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M18 30.25C24.7655 30.25 30.25 24.7655 30.25 18C30.25 11.2345 24.7655 5.75 18 5.75C11.2345 5.75 5.75 11.2345 5.75 18C5.75 24.7655 11.2345 30.25 18 30.25ZM18 32C25.732 32 32 25.732 32 18C32 10.268 25.732 4 18 4C10.268 4 4 10.268 4 18C4 25.732 10.268 32 18 32Z" fill="#D6E4E3"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.78249 18.601C10.5916 20.1494 13.4001 21.61 16.7894 22.5182C20.1788 23.4263 23.3412 23.5657 25.6822 23.1293C28.1628 22.6669 29.1062 21.715 29.291 21.0254C29.4758 20.3359 29.1346 19.0399 27.2176 17.3991C25.4085 15.8506 22.6 14.3901 19.2107 13.4819C15.8214 12.5738 12.6589 12.4344 10.3179 12.8708C7.83731 13.3332 6.89386 14.2851 6.70909 14.9746C6.52432 15.6642 6.86546 16.9602 8.78249 18.601ZM5.01872 14.5217C4.09997 17.9506 9.16709 22.2875 16.3365 24.2085C23.5059 26.1295 30.0626 24.9072 30.9814 21.4784C31.9001 18.0495 26.833 13.7126 19.6636 11.7916C12.4942 9.87055 5.93747 11.0929 5.01872 14.5217Z" fill="#D6E4E3"/>
+            <path d="M24.1872 15.5251C23.1621 16.5502 21.5 16.5502 20.4749 15.5251C19.4498 14.5 19.4498 12.8379 20.4749 11.8128C21.5 10.7877 23.1621 10.7877 24.1872 11.8128C25.2124 12.8379 25.2124 14.5 24.1872 15.5251Z" fill="#D6E4E3"/>
+            <path d="M13.9782 23.259C12.9531 24.2841 11.291 24.2841 10.2659 23.259C9.24079 22.2338 9.24079 20.5718 10.2659 19.5467C11.291 18.5216 12.9531 18.5216 13.9782 19.5467C15.0033 20.5718 15.0033 22.2338 13.9782 23.259Z" fill="#D6E4E3"/>
+          </g>
+        </svg>
+      </div>
+      <h1>Paseo Asset Hub &mdash; WSS TLS Audit</h1>
+    </div>
+    <p class="subtitle">
+      Full inventory of peers discovered on the Paseo Asset Hub network. For each node exposing
+      a WebSocket Secure (wss) endpoint, we verified the TLS certificate &mdash; a requirement for
+      smoldot light clients running in browsers.
+    </p>
+    <div class="meta">
+      <span class="meta-tag">Date: __REPORT_DATE__</span>
+      <span class="meta-tag">Chain: asset-hub-paseo</span>
+      <span class="meta-tag">Para ID: 1000</span>
+      <span class="meta-tag">Discovery: 90s Kademlia DHT crawl</span>
+    </div>
+  </header>
+
+  <!-- Methodology -->
+  <section>
+    <h2>Methodology</h2>
+    <div class="method">
+      <h3>How this audit was performed</h3>
+      <ol>
+        <li>We loaded the <code>paseo-asset-hub.smol.json</code> and <code>paseo.raw.smol.json</code>
+          chain specs and started a <a href="https://github.com/smol-dot/smoldot">smoldot</a> light
+          client in Node.js.</li>
+        <li>Smoldot connects to the bootnodes listed in the chain spec and joins the libp2p network.
+          It then performs <strong>Kademlia DHT</strong> peer discovery &mdash; random walks through the
+          distributed hash table to find other nodes.</li>
+        <li>We captured all multiaddrs announced by discovered peers from smoldot&rsquo;s debug logs for
+          90 seconds, yielding <strong>127 unique peers</strong>.</li>
+        <li>For every endpoint with a <code>/wss/</code> segment in its multiaddr, we verified the TLS
+          certificate:
+          <pre>echo Q | timeout 5 openssl s_client \
+  -connect &lt;host&gt;:&lt;port&gt; \
+  -servername &lt;host&gt;</pre>
+          checking the verify return code, issuer (CA), and expiration date.</li>
+        <li>Results were classified as <span class="badge b-green">valid</span>,
+          <span class="badge b-yellow">expiring</span> (within 7 days),
+          <span class="badge b-red">expired</span>, or
+          <span class="badge b-gray">unreachable</span>.</li>
+      </ol>
+
+      <h3 style="margin-top: 1rem;">Reproduce it yourself</h3>
+      <p>The audit tooling is open source. You need <a href="https://bun.sh" style="color:var(--accent)">Bun</a> installed, then:</p>
+      <pre>git clone https://github.com/paseo-network/paseo-tls-audit.git
+cd paseo-tls-audit
+bun install
+bun run audit</pre>
+      <p style="margin-top:0.5rem">This runs three steps: <strong>discover</strong> (smoldot DHT crawl) &rarr;
+        <strong>check-tls</strong> (certificate verification) &rarr; <strong>report</strong> (HTML generation).
+        The final report is written to <code>output/report.html</code>.</p>
+      <p style="margin-top:0.5rem">You can also run each step individually &mdash; see the
+        <a href="https://github.com/paseo-network/paseo-tls-audit" style="color:var(--accent)">repo README</a> for details.</p>
+
+      <h3 style="margin-top: 1rem;">Live browser test</h3>
+      <p>The <strong>Test All WSS</strong> button below opens a WebSocket connection from your browser
+        to each wss endpoint. If the browser completes the TLS handshake and WebSocket upgrade, it confirms
+        that smoldot would be able to reach that node. This test runs entirely in your browser &mdash;
+        no server involved.</p>
+    </div>
+  </section>
+
+  <div class="stats" id="stats"></div>
+
+  <!-- Live test panel -->
+  <div class="test-all-bar" style="flex-direction: column; gap: 0.75rem;">
+    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; width: 100%;">
+      <p>Test browser connectivity to wss endpoints in real time using WebSocket.</p>
+      <span id="test-progress"></span>
+      <button class="test-all-btn" id="test-all-btn" onclick="testAll()">Test All WSS</button>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.5rem; width: 100%;">
+      <input type="text" id="manual-test" placeholder="wss://host:port or /dns/host/tcp/port/wss/p2p/..." style="
+        flex: 1; background: var(--surface-2); border: 1px solid var(--border);
+        color: var(--text); padding: 0.45rem 0.75rem; border-radius: var(--radius);
+        font-family: 'Geist Mono', monospace; font-size: 0.82rem;
+      " onkeydown="if(event.key==='Enter')testManual()">
+      <button class="test-all-btn" style="font-size: 0.8rem; padding: 0.4rem 0.85rem;" onclick="testManual()">Test</button>
+      <span id="manual-result" style="font-size: 0.8rem; font-weight: 600;"></span>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Search peer ID, hostname, IP..." oninput="render()">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" data-filter="wss" onclick="setFilter('wss',this)">WSS</button>
+    <button class="filter-btn" data-filter="expired" onclick="setFilter('expired',this)">Expired WSS</button>
+    <button class="filter-btn" data-filter="unreachable" onclick="setFilter('unreachable',this)">Unreachable</button>
+    <button class="filter-btn" data-filter="ws" onclick="setFilter('ws',this)">WS only</button>
+    <button class="filter-btn" data-filter="tcp" onclick="setFilter('tcp',this)">TCP only</button>
+    <button class="filter-btn" data-filter="bootnode" onclick="setFilter('bootnode',this)">Bootnodes</button>
+    <span class="peer-count" id="peer-count"></span>
+  </div>
+
+  <div id="peers"></div>
+
+  <footer>
+    <span>Paseo Network</span>
+    <span>Generated __REPORT_DATE__</span>
+  </footer>
+</div>
+
+<script>
+const DATA = __REPORT_DATA__;
+
+const LABELS = {
+  valid: ['Valid TLS', 'b-green'],
+  expiring: ['Expiring', 'b-yellow'],
+  expired: ['Expired', 'b-red'],
+  unreachable: ['Unreachable', 'b-gray'],
+  'ws-only': ['WS only', 'b-yellow'],
+  'tcp-only': ['TCP only', 'b-gray'],
+};
+
+let filter = 'all';
+let liveResults = {};
+
+function setFilter(f, el) {
+  filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function matchFilter(p) {
+  if (filter === 'all') return true;
+  if (filter === 'wss') return p.t === 'wss';
+  if (filter === 'expired') return p.o === 'expired';
+  if (filter === 'unreachable') return p.o === 'unreachable';
+  if (filter === 'ws') return p.t === 'ws';
+  if (filter === 'tcp') return p.t === 'tcp';
+  if (filter === 'bootnode') return p.ab || p.rb;
+  return true;
+}
+
+function renderStats() {
+  const s = DATA.s;
+  const el = document.getElementById('stats');
+  el.innerHTML = `
+    <div class="stat"><div class="n c-blue">${s.total_peers}</div><div class="l">Total peers</div></div>
+    <div class="stat"><div class="n c-green">${s.wss_valid}</div><div class="l">Valid WSS</div></div>
+    <div class="stat"><div class="n c-yellow">${s.wss_expiring}</div><div class="l">Expiring WSS</div></div>
+    <div class="stat"><div class="n c-red">${s.wss_expired}</div><div class="l">Expired WSS</div></div>
+    <div class="stat"><div class="n c-gray">${s.wss_unreachable}</div><div class="l">Unreachable WSS</div></div>
+    <div class="stat"><div class="n c-yellow">${s.ws_only}</div><div class="l">WS only (no TLS)</div></div>
+    <div class="stat"><div class="n c-gray">${s.tcp_only}</div><div class="l">TCP only</div></div>
+  `;
+}
+
+function render() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const el = document.getElementById('peers');
+  let html = '';
+  let count = 0;
+
+  for (const p of DATA.p) {
+    if (!matchFilter(p)) continue;
+    // Search filter
+    const searchable = p.id + ' ' + p.a.map(a => a.m).join(' ');
+    if (q && !searchable.toLowerCase().includes(q)) continue;
+    count++;
+
+    const [label, cls] = LABELS[p.o] || ['Unknown', 'b-gray'];
+    const tags = [];
+    tags.push(`<span class="badge ${cls}">${label}</span>`);
+    if (p.ab) tags.push('<span class="badge b-blue">AH bootnode</span>');
+    if (p.rb) tags.push('<span class="badge b-blue">Relay bootnode</span>');
+    if (p.wss > 0) tags.push(`<span class="badge b-green">${p.wss} wss</span>`);
+    if (p.ws > 0) tags.push(`<span class="badge b-yellow">${p.ws} ws</span>`);
+    if (p.tcp > 0) tags.push(`<span class="badge b-gray">${p.tcp} tcp</span>`);
+
+    let addrs = '';
+    for (const a of p.a) {
+      const protoTag = a.p === 'wss' ? 't-wss' : a.p === 'ws' ? 't-ws' : 't-tcp';
+      const srcTag = a.s === 'chain-spec' ? 't-cs' : 't-dht';
+      const srcLabel = a.s === 'chain-spec' ? 'chain spec' : 'dht';
+
+      let tlsHtml = '';
+      if (a.p === 'wss' && a.tc) {
+        const tlsCls = a.tc;
+        if (a.tc === 'valid') {
+          tlsHtml = `<div class="tls-info valid">TLS valid &middot; ${a.ti || ''} &middot; expires ${a.te || ''} (${a.td}d)</div>`;
+        } else if (a.tc === 'expiring') {
+          tlsHtml = `<div class="tls-info expiring">TLS expiring &middot; ${a.ti || ''} &middot; expires ${a.te || ''} (${a.td}d left)</div>`;
+        } else if (a.tc === 'expired') {
+          tlsHtml = `<div class="tls-info expired">TLS expired &middot; ${a.ti || ''} &middot; expired ${a.te || ''}</div>`;
+        } else if (a.tc === 'unreachable') {
+          tlsHtml = `<div class="tls-info unreachable">Unreachable (TCP timeout or connection refused)</div>`;
+        }
+      }
+
+      // Live test button for wss
+      let testBtn = '';
+      if (a.p === 'wss') {
+        const wsUrl = buildWsUrl(a.m);
+        if (wsUrl) {
+          const rid = btoa(wsUrl).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+          const liveState = liveResults[wsUrl];
+          let btnCls = '';
+          let btnLabel = 'Test';
+          if (liveState === 'testing') { btnCls = 'testing'; btnLabel = '...'; }
+          else if (liveState === 'pass') { btnCls = 'pass'; btnLabel = 'OK'; }
+          else if (liveState === 'fail') { btnCls = 'fail'; btnLabel = 'Fail'; }
+          testBtn = `<button class="test-btn ${btnCls}" data-ws="${wsUrl}" onclick="testOne(this)">
+            ${btnLabel}</button>`;
+        }
+      }
+
+      addrs += `<div class="addr">
+        <div>
+          <div class="ma">${a.m}</div>
+          ${tlsHtml}
+        </div>
+        <div class="tags">
+          ${testBtn}
+          <span class="tag ${protoTag}">${a.p}</span>
+          <span class="tag ${srcTag}">${srcLabel}</span>
+        </div>
+      </div>`;
+    }
+
+    html += `<div class="peer" id="p-${p.id}">
+      <div class="peer-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="chevron">&#9654;</span>
+        <span class="peer-id">${p.id}</span>
+        <div class="peer-tags">${tags.join('')}</div>
+      </div>
+      <div class="peer-body">${addrs}</div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+  document.getElementById('peer-count').textContent = count + ' / ' + DATA.p.length + ' peers';
+}
+
+function buildWsUrl(multiaddr) {
+  // Parse /dns/host/tcp/port/wss/p2p/... or /ip4/host/tcp/port/wss/p2p/...
+  const parts = multiaddr.replace(/^\//, '').split('/');
+  let host = null, port = null;
+  for (let i = 0; i < parts.length; i++) {
+    if ((parts[i] === 'dns' || parts[i] === 'dns4' || parts[i] === 'dns6' || parts[i] === 'ip4' || parts[i] === 'ip6') && i + 1 < parts.length)
+      host = parts[i + 1];
+    if (parts[i] === 'tcp' && i + 1 < parts.length)
+      port = parts[i + 1];
+  }
+  if (host && port) return `wss://${host}:${port}`;
+  return null;
+}
+
+function testOne(btn) {
+  const url = btn.dataset.ws;
+  if (!url || liveResults[url] === 'testing') return;
+  liveResults[url] = 'testing';
+  btn.className = 'test-btn testing';
+  btn.textContent = '...';
+
+  const ws = new WebSocket(url);
+  const timer = setTimeout(() => {
+    ws.close();
+    liveResults[url] = 'fail';
+    btn.className = 'test-btn fail';
+    btn.textContent = 'Timeout';
+  }, 6000);
+
+  ws.onopen = () => {
+    clearTimeout(timer);
+    liveResults[url] = 'pass';
+    btn.className = 'test-btn pass';
+    btn.textContent = 'OK';
+    ws.close();
+  };
+  ws.onerror = () => {
+    clearTimeout(timer);
+    liveResults[url] = 'fail';
+    btn.className = 'test-btn fail';
+    btn.textContent = 'Fail';
+  };
+}
+
+function testManual() {
+  const input = document.getElementById('manual-test');
+  const result = document.getElementById('manual-result');
+  let raw = input.value.trim();
+  if (!raw) return;
+
+  // Accept either wss://host:port or a multiaddr like /dns/host/tcp/port/wss/p2p/...
+  let url = raw;
+  if (raw.startsWith('/')) {
+    url = buildWsUrl(raw);
+    if (!url) {
+      result.style.color = 'var(--red)';
+      result.textContent = 'Could not parse multiaddr (needs /dns|ip4/.../tcp/.../wss/...)';
+      return;
+    }
+  } else if (!raw.startsWith('wss://')) {
+    // Bare host:port — prepend wss://
+    url = 'wss://' + raw;
+  }
+
+  result.style.color = 'var(--blue)';
+  result.textContent = 'Connecting...';
+
+  const ws = new WebSocket(url);
+  const timer = setTimeout(() => {
+    ws.close();
+    result.style.color = 'var(--red)';
+    result.textContent = 'Timeout — ' + url;
+  }, 6000);
+
+  ws.onopen = () => {
+    clearTimeout(timer);
+    result.style.color = 'var(--green)';
+    result.textContent = 'OK — ' + url;
+    ws.close();
+  };
+  ws.onerror = () => {
+    clearTimeout(timer);
+    result.style.color = 'var(--red)';
+    result.textContent = 'Failed — ' + url;
+  };
+}
+
+async function testAll() {
+  const btn = document.getElementById('test-all-btn');
+  const prog = document.getElementById('test-progress');
+  btn.disabled = true;
+  btn.textContent = 'Testing...';
+
+  // Collect all wss URLs
+  const urls = new Set();
+  for (const p of DATA.p) {
+    for (const a of p.a) {
+      if (a.p === 'wss') {
+        const u = buildWsUrl(a.m);
+        if (u) urls.add(u);
+      }
+    }
+  }
+
+  const total = urls.size;
+  let done = 0;
+  let passed = 0;
+  let failed = 0;
+
+  // Expand all wss peers first
+  document.querySelectorAll('.peer').forEach(el => {
+    const peer = DATA.p.find(p => 'p-' + p.id === el.id);
+    if (peer && peer.t === 'wss') el.classList.add('open');
+  });
+
+  const promises = [...urls].map(url => new Promise(resolve => {
+    liveResults[url] = 'testing';
+    // Update button visually
+    document.querySelectorAll(`[data-ws="${url}"]`).forEach(b => {
+      b.className = 'test-btn testing'; b.textContent = '...';
+    });
+
+    const ws = new WebSocket(url);
+    const timer = setTimeout(() => {
+      ws.close();
+      liveResults[url] = 'fail';
+      failed++;
+      done++;
+      prog.textContent = `${done}/${total} (${passed} OK, ${failed} fail)`;
+      document.querySelectorAll(`[data-ws="${url}"]`).forEach(b => {
+        b.className = 'test-btn fail'; b.textContent = 'Timeout';
+      });
+      resolve();
+    }, 6000);
+
+    ws.onopen = () => {
+      clearTimeout(timer);
+      liveResults[url] = 'pass';
+      passed++;
+      done++;
+      prog.textContent = `${done}/${total} (${passed} OK, ${failed} fail)`;
+      document.querySelectorAll(`[data-ws="${url}"]`).forEach(b => {
+        b.className = 'test-btn pass'; b.textContent = 'OK';
+      });
+      ws.close();
+      resolve();
+    };
+    ws.onerror = () => {
+      clearTimeout(timer);
+      liveResults[url] = 'fail';
+      failed++;
+      done++;
+      prog.textContent = `${done}/${total} (${passed} OK, ${failed} fail)`;
+      document.querySelectorAll(`[data-ws="${url}"]`).forEach(b => {
+        b.className = 'test-btn fail'; b.textContent = 'Fail';
+      });
+      resolve();
+    };
+  }));
+
+  await Promise.all(promises);
+  btn.textContent = 'Done';
+  prog.textContent = `${total} tested: ${passed} OK, ${failed} failed`;
+}
+
+renderStats();
+render();
+</script>
+</body>
+</html>
