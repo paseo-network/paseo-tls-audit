@@ -486,17 +486,23 @@ function render() {
 }
 
 function buildWsUrl(multiaddr) {
-  // Parse /dns/host/tcp/port/wss/p2p/... or /ip4/host/tcp/port/wss/p2p/...
   const parts = multiaddr.replace(/^\//, '').split('/');
-  let host = null, port = null;
+  let host = null, port = null, isIpv6 = false;
   for (let i = 0; i < parts.length; i++) {
-    if ((parts[i] === 'dns' || parts[i] === 'dns4' || parts[i] === 'dns6' || parts[i] === 'ip4' || parts[i] === 'ip6') && i + 1 < parts.length)
+    if ((parts[i] === 'dns' || parts[i] === 'dns4' || parts[i] === 'dns6' || parts[i] === 'ip4') && i + 1 < parts.length)
       host = parts[i + 1];
+    if (parts[i] === 'ip6' && i + 1 < parts.length) {
+      host = parts[i + 1]; isIpv6 = true;
+    }
     if (parts[i] === 'tcp' && i + 1 < parts.length)
       port = parts[i + 1];
   }
-  if (host && port) return `wss://${host}:${port}`;
-  return null;
+  if (!host || !port) return null;
+  // Skip private/loopback
+  if (host === '::1' || host === '127.0.0.1' || host.startsWith('10.') ||
+      host.startsWith('192.168.') || host.startsWith('172.')) return null;
+  if (isIpv6) return `wss://[${host}]:${port}`;
+  return `wss://${host}:${port}`;
 }
 
 function testOne(btn) {
@@ -506,7 +512,13 @@ function testOne(btn) {
   btn.className = 'test-btn testing';
   btn.textContent = '...';
 
-  const ws = new WebSocket(url);
+  let ws;
+  try { ws = new WebSocket(url); } catch {
+    liveResults[url] = 'fail';
+    btn.className = 'test-btn fail';
+    btn.textContent = 'Bad URL';
+    return;
+  }
   const timer = setTimeout(() => {
     ws.close();
     liveResults[url] = 'fail';
